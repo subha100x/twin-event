@@ -50,7 +50,10 @@ class Settings(BaseSettings):
     DIGEST_BATCH_SIZE: int = 10         # flush immediately if 10 unnotified FAQs pile up
 
     # Database
-    DB_PATH: str = os.path.join(os.path.dirname(__file__), "twin_agent.db")
+    DB_PATH: str = os.environ.get(
+        "DB_PATH",
+        os.path.join("/tmp" if os.environ.get("VERCEL") else os.path.dirname(__file__), "twin_agent.db")
+    )
 
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(__file__), ".env"),

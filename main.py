@@ -16,14 +16,17 @@ async def lifespan(app: FastAPI):
     # Startup: initialize database and background digest worker
     print(f"[*] Starting Twin & Event Agent in mode: '{settings.AGENT_MODE.upper()}'...")
     await db.init_db()
-    worker_task = asyncio.create_task(notifier.digest_background_worker())
+    worker_task = None
+    if not os.environ.get("VERCEL"):
+        worker_task = asyncio.create_task(notifier.digest_background_worker())
     yield
-    # Shutdown: cancel background worker
-    worker_task.cancel()
-    try:
-        await worker_task
-    except asyncio.CancelledError:
-        pass
+    # Shutdown: cancel background worker if active
+    if worker_task:
+        worker_task.cancel()
+        try:
+            await worker_task
+        except asyncio.CancelledError:
+            pass
     print("[*] Twin & Event Agent stopped cleanly.")
 
 app = FastAPI(title="Twin & Event Agent", lifespan=lifespan)
