@@ -279,6 +279,49 @@ async def update_mode(payload: ModeUpdate):
 async def list_recent_messages():
     return await db.get_all_recent_messages(limit=50)
 
+# -------------------------------------------------------------
+# Dynamic Persona Studio Endpoints
+# -------------------------------------------------------------
+class PersonaProfilePayload(BaseModel):
+    user_name: str = "Subho"
+    occupation: str = ""
+    current_status: str = ""
+    communication_tone: str = "casual"
+    common_greetings: str = ""
+    common_slang: str = ""
+    sample_chats: str = ""
+    custom_rules: str = ""
+    compiled_prompt: str = ""
+
+@app.get("/api/persona")
+async def get_persona():
+    """Fetches the current persona profile, questionnaire responses, and compiled prompt."""
+    profile = await db.get_persona_profile()
+    return profile
+
+@app.post("/api/persona")
+async def save_persona(payload: PersonaProfilePayload):
+    """Saves questionnaire inputs and active compiled persona prompt."""
+    data = payload.model_dump()
+    await db.save_persona_profile(data)
+    if payload.user_name:
+        settings.USER_NAME = payload.user_name
+    return {"success": True, "message": "Persona profile saved successfully!"}
+
+@app.post("/api/persona/analyze")
+async def analyze_and_synthesize_persona(payload: PersonaProfilePayload):
+    """Analyzes user questionnaire + sample chats with LLM to generate an authentic digital twin prompt."""
+    try:
+        data = payload.model_dump()
+        compiled_prompt = await llm.synthesize_persona_prompt(data)
+        data["compiled_prompt"] = compiled_prompt
+        await db.save_persona_profile(data)
+        if payload.user_name:
+            settings.USER_NAME = payload.user_name
+        return {"success": True, "compiled_prompt": compiled_prompt}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Persona synthesis failed: {str(e)}")
+
 class TakeoverRequest(BaseModel):
     sender: str
     mute: bool

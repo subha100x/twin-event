@@ -42,6 +42,79 @@ async def init_db():
             )
         """)
 
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS persona_profile (
+                id INTEGER PRIMARY KEY,
+                user_name TEXT DEFAULT 'Subho',
+                occupation TEXT DEFAULT '',
+                current_status TEXT DEFAULT '',
+                communication_tone TEXT DEFAULT 'casual',
+                common_greetings TEXT DEFAULT '',
+                common_slang TEXT DEFAULT '',
+                sample_chats TEXT DEFAULT '',
+                custom_rules TEXT DEFAULT '',
+                compiled_prompt TEXT DEFAULT '',
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        await db.commit()
+
+async def get_persona_profile() -> dict:
+    """Fetches the saved persona profile and compiled prompt."""
+    async with aiosqlite.connect(DB_FILE) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM persona_profile WHERE id = 1") as cursor:
+            row = await cursor.fetchone()
+            if row:
+                return dict(row)
+    # Default initial profile
+    return {
+        "id": 1,
+        "user_name": getattr(settings, "USER_NAME", "Subho") or "Subho",
+        "occupation": "Developer & Tech enthusiast",
+        "current_status": "Away from phone / in classes or meetings",
+        "communication_tone": "casual",
+        "common_greetings": "Hey, yo, what's up",
+        "common_slang": "bet, sounds good, on it",
+        "sample_chats": "",
+        "custom_rules": "Acknowledge urgent messages and confirm Subho is notified via email alert.",
+        "compiled_prompt": "",
+        "updated_at": datetime.utcnow().isoformat()
+    }
+
+async def save_persona_profile(data: dict):
+    """Inserts or updates the singleton persona profile in the database."""
+    async with aiosqlite.connect(DB_FILE) as db:
+        await db.execute("""
+            INSERT INTO persona_profile (
+                id, user_name, occupation, current_status, communication_tone,
+                common_greetings, common_slang, sample_chats, custom_rules,
+                compiled_prompt, updated_at
+            ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                user_name = excluded.user_name,
+                occupation = excluded.occupation,
+                current_status = excluded.current_status,
+                communication_tone = excluded.communication_tone,
+                common_greetings = excluded.common_greetings,
+                common_slang = excluded.common_slang,
+                sample_chats = excluded.sample_chats,
+                custom_rules = excluded.custom_rules,
+                compiled_prompt = excluded.compiled_prompt,
+                updated_at = excluded.updated_at
+        """, (
+            data.get("user_name", "Subho"),
+            data.get("occupation", ""),
+            data.get("current_status", ""),
+            data.get("communication_tone", "casual"),
+            data.get("common_greetings", ""),
+            data.get("common_slang", ""),
+            data.get("sample_chats", ""),
+            data.get("custom_rules", ""),
+            data.get("compiled_prompt", ""),
+            datetime.utcnow().isoformat()
+        ))
         await db.commit()
 
 async def log_interaction(

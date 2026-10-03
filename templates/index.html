@@ -96,106 +96,289 @@
       </div>
     </div>
 
-    <!-- Dual Column Workspace -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      <!-- Left Column: Live Message Feed (7 cols) -->
-      <div class="lg:col-span-7 bg-slate-800/40 border border-slate-800 rounded-2xl flex flex-col h-[680px] overflow-hidden">
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
-          <div class="flex items-center space-x-2">
-            <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
-            <h2 class="font-semibold text-sm">Live WhatsApp DM Activity</h2>
+    <!-- View Switcher Tabs -->
+    <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-3">
+      <div class="flex items-center space-x-2">
+        <button id="tab-btn-dashboard" onclick="switchView('dashboard')" class="px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-gauge-high"></i> Live Command Center
+        </button>
+        <button id="tab-btn-studio" onclick="switchView('studio')" class="px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Persona Studio (Digital Twin)
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">AI Profiler</span>
+        </button>
+      </div>
+      <div class="text-xs text-slate-400 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Owner: <strong id="header-user-name" class="text-white">Subho</strong></span>
+      </div>
+    </div>
+
+    <!-- VIEW 1: Live Command Center (Dashboard & Simulator) -->
+    <div id="view-dashboard">
+      <!-- Dual Column Workspace -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Live Message Feed (7 cols) -->
+        <div class="lg:col-span-7 bg-slate-800/40 border border-slate-800 rounded-2xl flex flex-col h-[680px] overflow-hidden">
+          <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+            <div class="flex items-center space-x-2">
+              <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+              <h2 class="font-semibold text-sm">Live WhatsApp DM Activity</h2>
+            </div>
+            <button onclick="loadMessages()" class="text-xs text-slate-400 hover:text-white transition flex items-center gap-1">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh
+            </button>
           </div>
-          <button onclick="loadMessages()" class="text-xs text-slate-400 hover:text-white transition flex items-center gap-1">
-            <i class="fa-solid fa-arrows-rotate"></i> Refresh
+
+          <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <!-- Dynamically populated messages -->
+            <div class="text-center text-slate-500 text-sm py-12">
+              <i class="fa-regular fa-comments text-3xl mb-3 block opacity-40"></i>
+              No incoming messages yet. Send a test message or WhatsApp DM!
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Sandbox & Controls (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Live Agent Simulator -->
+          <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-vial text-indigo-400"></i> Instant DM Simulator
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Test Without WhatsApp</span>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">
+              Simulate an attendee or contact pinging you. The agent will process, categorize, and trigger smart email notifications.
+            </p>
+
+            <form id="sim-form" onsubmit="runSimulation(event)" class="space-y-3">
+              <div>
+                <label class="text-xs text-slate-400 font-medium">Sender Name / Identifier</label>
+                <input type="text" id="sim-sender" value="Alex Rivera (Hacker #42)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+              </div>
+
+              <div>
+                <label class="text-xs text-slate-400 font-medium">Message Body</label>
+                <textarea id="sim-message" rows="3" placeholder="e.g. When is the submission deadline? or Hey are you free to talk?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1"></textarea>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <button type="button" onclick="loadSampleQuery('wifi')" class="text-[11px] text-slate-400 hover:text-indigo-400 underline">Wi-Fi Query</button>
+                <button type="button" onclick="loadSampleQuery('urgent')" class="text-[11px] text-slate-400 hover:text-rose-400 underline">Medical Emergency</button>
+                <button type="button" onclick="loadSampleQuery('persona')" class="text-[11px] text-slate-400 hover:text-blue-400 underline">Personal Catch-up</button>
+              </div>
+
+              <button type="submit" id="btn-sim-send" class="w-full bg-gradient-to-r from-indigo-500 to-emerald-500 hover:from-indigo-600 hover:to-emerald-600 text-white font-medium py-2 rounded-lg text-sm transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i> Send Query & Test Agent
+              </button>
+            </form>
+          </div>
+
+          <!-- WhatsApp Webhook & Green API Setup Info -->
+          <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-semibold text-sm flex items-center gap-2">
+                <i class="fa-solid fa-link text-emerald-400"></i> WhatsApp Connection (Green API)
+              </h3>
+              <span id="provider-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                Green API
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mb-3">
+              Set this Webhook URL in your <a href="https://console.green-api.com" target="_blank" class="text-emerald-400 hover:underline">Green API Cabinet</a> (or Twilio Console):
+            </p>
+            <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between text-xs font-mono text-emerald-400">
+              <span id="webhook-url" class="truncate pr-2">https://&lt;your-domain&gt;/whatsapp/green-api-webhook</span>
+              <button onclick="copyWebhookUrl()" class="text-slate-400 hover:text-white px-2 py-1 flex-shrink-0" title="Copy URL">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+            <div class="mt-3 text-xs text-slate-400 space-y-1.5">
+              <p class="flex items-start gap-1.5">
+                <i class="fa-solid fa-check text-emerald-400 text-[10px] mt-0.5"></i>
+                <span><strong>Green API:</strong> Create instance at <a href="https://green-api.com/en/docs/" target="_blank" class="text-emerald-400 underline">green-api.com</a>, scan WhatsApp QR code, and paste your <code class="text-slate-300">GREEN_API_INSTANCE_ID</code> & <code class="text-slate-300">GREEN_API_API_TOKEN_INSTANCE</code> in <code class="text-slate-300">.env</code>.</span>
+              </p>
+              <p class="flex items-start gap-1.5">
+                <i class="fa-solid fa-check text-emerald-400 text-[10px] mt-0.5"></i>
+                <span><strong>Webhook:</strong> Turn on <em>"Receive notifications about incoming messages"</em> in Green API console.</span>
+              </p>
+              <p class="flex items-start gap-1.5 text-slate-500 text-[11px] pt-1 border-t border-slate-800/80">
+                <i class="fa-solid fa-info-circle text-[10px] mt-0.5"></i>
+                <span>Twilio sandbox is also supported on endpoint <code class="text-slate-400">/whatsapp/webhook</code>.</span>
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 2: Persona Studio (Digital Twin Profiler & Chat Style Analyzer) -->
+    <div id="view-studio" class="hidden space-y-6">
+      
+      <!-- Studio Intro Banner -->
+      <div class="bg-gradient-to-r from-violet-900/40 via-indigo-900/30 to-slate-900 border border-violet-800/40 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 text-violet-400 text-xs font-bold uppercase tracking-wider mb-1">
+            <i class="fa-solid fa-fingerprint"></i> Behavioral Cloning & Persona Profiling
+          </div>
+          <h2 class="text-xl font-bold text-white">Teach the AI How You Speak</h2>
+          <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+            Personalize your Digital Twin using two complementary methods: complete the personality questionnaire, or paste raw samples of your past WhatsApp messages to extract your exact slang, emojis, sentence rhythms, and tone.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="loadDemoChatSample()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-medium px-3.5 py-2.5 rounded-xl flex items-center gap-2 transition">
+            <i class="fa-solid fa-wand-magic text-indigo-400"></i> Load Demo Sample
+          </button>
+          <button type="button" id="btn-synthesize-persona" onclick="synthesizePersona()" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg shadow-indigo-500/25">
+            <i class="fa-solid fa-bolt text-amber-300"></i> Synthesize with AI
           </button>
         </div>
-
-        <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3">
-          <!-- Dynamically populated messages -->
-          <div class="text-center text-slate-500 text-sm py-12">
-            <i class="fa-regular fa-comments text-3xl mb-3 block opacity-40"></i>
-            No incoming messages yet. Send a test message or WhatsApp DM!
-          </div>
-        </div>
       </div>
 
-      <!-- Right Column: Interactive Sandbox & Controls (5 cols) -->
-      <div class="lg:col-span-5 space-y-6">
-        
-        <!-- Live Agent Simulator -->
-        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold text-sm flex items-center gap-2">
-              <i class="fa-solid fa-vial text-indigo-400"></i> Instant DM Simulator
-            </h3>
-            <span class="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Test Without WhatsApp</span>
-          </div>
-          <p class="text-xs text-slate-400 mb-4">
-            Simulate an attendee or contact pinging you. The agent will process, categorize, and trigger smart email notifications.
-          </p>
+      <!-- Studio Grid: Inputs on Left, Compiled Prompt on Right -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-          <form id="sim-form" onsubmit="runSimulation(event)" class="space-y-3">
-            <div>
-              <label class="text-xs text-slate-400 font-medium">Sender Name / Identifier</label>
-              <input type="text" id="sim-sender" value="Alex Rivera (Hacker #42)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+        <!-- Left 7 Cols: Both Methods (Questionnaire + Chat Ingestion) -->
+        <div class="lg:col-span-7 space-y-6">
+          
+          <!-- Method 1: Questionnaire Profiler -->
+          <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="font-semibold text-sm flex items-center gap-2 text-white">
+                <i class="fa-solid fa-user-pen text-indigo-400"></i> Method 1: Interactive Questionnaire
+              </h3>
+              <span class="text-[11px] text-slate-400">Tell the agent about yourself</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-slate-400 font-medium">Your Name / Nickname</label>
+                <input type="text" id="persona-user-name" value="Subho" placeholder="e.g. Subho" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 font-medium">Occupation / What you do</label>
+                <input type="text" id="persona-occupation" placeholder="e.g. CS Student & AI Developer" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+              </div>
             </div>
 
             <div>
-              <label class="text-xs text-slate-400 font-medium">Message Body</label>
-              <textarea id="sim-message" rows="3" placeholder="e.g. When is the submission deadline? or Hey are you free to talk?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1"></textarea>
+              <label class="text-xs text-slate-400 font-medium">Current Status / Availability</label>
+              <input type="text" id="persona-status" placeholder="e.g. Busy in hackathon crunch / studying for exams / away from phone" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+              <p class="text-[11px] text-slate-500 mt-1">The agent uses this context when explaining why you aren't picking up right now.</p>
             </div>
 
-            <div class="flex items-center justify-between pt-1">
-              <button type="button" onclick="loadSampleQuery('wifi')" class="text-[11px] text-slate-400 hover:text-indigo-400 underline">Wi-Fi Query</button>
-              <button type="button" onclick="loadSampleQuery('urgent')" class="text-[11px] text-slate-400 hover:text-rose-400 underline">Medical Emergency</button>
-              <button type="button" onclick="loadSampleQuery('persona')" class="text-[11px] text-slate-400 hover:text-blue-400 underline">Personal Catch-up</button>
+            <div>
+              <label class="text-xs text-slate-400 font-medium">Talking Tone & Vibe</label>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1.5 mb-2">
+                <button type="button" onclick="setTonePreset('casual')" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-700 hover:border-indigo-500 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-center transition">
+                  😎 Chill & Casual
+                </button>
+                <button type="button" onclick="setTonePreset('genz')" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-700 hover:border-indigo-500 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-center transition">
+                  🔥 Gen-Z / Witty
+                </button>
+                <button type="button" onclick="setTonePreset('professional')" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-700 hover:border-indigo-500 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-center transition">
+                  💼 Warm & Polite
+                </button>
+                <button type="button" onclick="setTonePreset('minimal')" class="px-2.5 py-1.5 text-xs rounded-lg border border-slate-700 hover:border-indigo-500 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-center transition">
+                  ⚡ Short & Direct
+                </button>
+              </div>
+              <input type="text" id="persona-tone" placeholder="e.g. Chill, relaxed, friendly, uses occasional smiling emojis" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
             </div>
 
-            <button type="submit" id="btn-sim-send" class="w-full bg-gradient-to-r from-indigo-500 to-emerald-500 hover:from-indigo-600 hover:to-emerald-600 text-white font-medium py-2 rounded-lg text-sm transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
-              <i class="fa-solid fa-paper-plane"></i> Send Query & Test Agent
-            </button>
-          </form>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs text-slate-400 font-medium">How You Greet Friends</label>
+                <input type="text" id="persona-greetings" placeholder="e.g. yo, hey bro, wassup, hey there" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+              </div>
+              <div>
+                <label class="text-xs text-slate-400 font-medium">Common Slang & Catchphrases</label>
+                <input type="text" id="persona-slang" placeholder="e.g. bet, on it, sounds good, haha, no worries" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-400 font-medium">Custom Rules & Boundaries</label>
+              <textarea id="persona-rules" rows="2" placeholder="e.g. Never make financial commitments on my behalf. Tell friends to call if it's truly urgent." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1"></textarea>
+            </div>
+          </div>
+
+          <!-- Method 2: Chat Style Analyzer (WhatsApp Log Ingestion) -->
+          <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="font-semibold text-sm flex items-center gap-2 text-white">
+                <i class="fa-solid fa-comments text-emerald-400"></i> Method 2: Chat Style Analyzer (WhatsApp Logs)
+              </h3>
+              <span class="text-[11px] text-slate-400">Pasting real chats</span>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs text-slate-400 font-medium">Paste Sample Sent Messages / WhatsApp Chats</label>
+                <span id="chat-chars-counter" class="text-[11px] text-slate-500 font-mono">0 chars</span>
+              </div>
+              <textarea id="persona-sample-chats" rows="6" oninput="updateChatCharCount()" placeholder="Paste your past messages or conversation snippets here:&#10;&#10;Me: yo wassup are we still meeting tonight?&#10;Friend: yeah around 8pm&#10;Me: bet sounds good, im finishing up some code right now see u then haha" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500 leading-relaxed"></textarea>
+              <p class="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
+                <i class="fa-solid fa-lightbulb text-amber-400 text-[10px]"></i>
+                <span>The AI analyzes your punctuation habits, word choices, emoji styles, and conversational cadence.</span>
+              </p>
+            </div>
+
+            <div class="pt-2">
+              <button type="button" id="btn-synthesize-bottom" onclick="synthesizePersona()" class="w-full bg-gradient-to-r from-violet-600 via-indigo-600 to-emerald-500 hover:from-violet-500 hover:to-emerald-400 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt text-amber-300"></i> Synthesize Persona (Analyze Both Methods)
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        <!-- WhatsApp Webhook & Green API Setup Info -->
-        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-semibold text-sm flex items-center gap-2">
-              <i class="fa-solid fa-link text-emerald-400"></i> WhatsApp Connection (Green API)
-            </h3>
-            <span id="provider-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              Green API
-            </span>
+        <!-- Right 5 Cols: Live Compiled Prompt & Actions -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 flex flex-col h-[780px]">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+              <div>
+                <h3 class="font-semibold text-sm flex items-center gap-2 text-white">
+                  <i class="fa-solid fa-code text-indigo-400"></i> Active Digital Twin System Prompt
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">The exact instructions your WhatsApp AI agent uses in real-time</p>
+              </div>
+              <span id="prompt-active-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">
+                Active in DB
+              </span>
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-0 space-y-3">
+              <textarea id="persona-compiled-prompt" placeholder="Click 'Synthesize with AI' to generate your personalized prompt, or type your custom system instructions directly here..." class="flex-1 w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs font-mono text-emerald-300 focus:outline-none focus:border-indigo-500 leading-relaxed resize-none overflow-y-auto"></textarea>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800/80 space-y-2.5">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="savePersonaProfile()" id="btn-save-persona" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-floppy-disk"></i> Save & Activate Prompt
+                </button>
+                <button type="button" onclick="testPersonaInSandbox()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-play text-indigo-400"></i> Test in Sandbox
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-500 text-center">
+                Updates take effect immediately on incoming WhatsApp messages.
+              </p>
+            </div>
           </div>
-          <p class="text-xs text-slate-400 mb-3">
-            Set this Webhook URL in your <a href="https://console.green-api.com" target="_blank" class="text-emerald-400 hover:underline">Green API Cabinet</a> (or Twilio Console):
-          </p>
-          <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between text-xs font-mono text-emerald-400">
-            <span id="webhook-url" class="truncate pr-2">https://&lt;your-domain&gt;/whatsapp/green-api-webhook</span>
-            <button onclick="copyWebhookUrl()" class="text-slate-400 hover:text-white px-2 py-1 flex-shrink-0" title="Copy URL">
-              <i class="fa-regular fa-copy"></i>
-            </button>
-          </div>
-          <div class="mt-3 text-xs text-slate-400 space-y-1.5">
-            <p class="flex items-start gap-1.5">
-              <i class="fa-solid fa-check text-emerald-400 text-[10px] mt-0.5"></i>
-              <span><strong>Green API:</strong> Create instance at <a href="https://green-api.com/en/docs/" target="_blank" class="text-emerald-400 underline">green-api.com</a>, scan WhatsApp QR code, and paste your <code class="text-slate-300">GREEN_API_INSTANCE_ID</code> & <code class="text-slate-300">GREEN_API_API_TOKEN_INSTANCE</code> in <code class="text-slate-300">.env</code>.</span>
-            </p>
-            <p class="flex items-start gap-1.5">
-              <i class="fa-solid fa-check text-emerald-400 text-[10px] mt-0.5"></i>
-              <span><strong>Webhook:</strong> Turn on <em>"Receive notifications about incoming messages"</em> in Green API console.</span>
-            </p>
-            <p class="flex items-start gap-1.5 text-slate-500 text-[11px] pt-1 border-t border-slate-800/80">
-              <i class="fa-solid fa-info-circle text-[10px] mt-0.5"></i>
-              <span>Twilio sandbox is also supported on endpoint <code class="text-slate-400">/whatsapp/webhook</code>.</span>
-            </p>
-          </div>
+
         </div>
 
       </div>
-
     </div>
+
   </main>
 
   <script>
@@ -204,9 +387,200 @@
     async function initDashboard() {
       await fetchStatus();
       await loadMessages();
+      await loadPersonaProfile();
       setInterval(loadMessages, 5000);
       document.getElementById('webhook-url').innerText = window.location.origin + '/whatsapp/green-api-webhook';
     }
+
+    // -----------------------------------------------------------
+    // View Switcher (Command Center vs Persona Studio)
+    // -----------------------------------------------------------
+    function switchView(viewName) {
+      const dashEl = document.getElementById('view-dashboard');
+      const studioEl = document.getElementById('view-studio');
+      const btnDash = document.getElementById('tab-btn-dashboard');
+      const btnStudio = document.getElementById('tab-btn-studio');
+
+      if (viewName === 'studio') {
+        dashEl.classList.add('hidden');
+        studioEl.classList.remove('hidden');
+        btnDash.className = "px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700";
+        btnStudio.className = "px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-500/20";
+        loadPersonaProfile();
+      } else {
+        studioEl.classList.add('hidden');
+        dashEl.classList.remove('hidden');
+        btnStudio.className = "px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700";
+        btnDash.className = "px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-500/20";
+      }
+    }
+
+    // -----------------------------------------------------------
+    // Persona Studio: Data Loading & Preset Handlers
+    // -----------------------------------------------------------
+    async function loadPersonaProfile() {
+      try {
+        const res = await fetch('/api/persona');
+        const data = await res.json();
+        if (data) {
+          if (data.user_name) {
+            document.getElementById('persona-user-name').value = data.user_name;
+            const headerNameEl = document.getElementById('header-user-name');
+            if (headerNameEl) headerNameEl.innerText = data.user_name;
+          }
+          if (data.occupation) document.getElementById('persona-occupation').value = data.occupation;
+          if (data.current_status) document.getElementById('persona-status').value = data.current_status;
+          if (data.communication_tone) document.getElementById('persona-tone').value = data.communication_tone;
+          if (data.common_greetings) document.getElementById('persona-greetings').value = data.common_greetings;
+          if (data.common_slang) document.getElementById('persona-slang').value = data.common_slang;
+          if (data.custom_rules) document.getElementById('persona-rules').value = data.custom_rules;
+          if (data.sample_chats) {
+            document.getElementById('persona-sample-chats').value = data.sample_chats;
+            updateChatCharCount();
+          }
+          if (data.compiled_prompt) {
+            document.getElementById('persona-compiled-prompt').value = data.compiled_prompt;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load persona profile:", err);
+      }
+    }
+
+    function setTonePreset(preset) {
+      const toneEl = document.getElementById('persona-tone');
+      const slangEl = document.getElementById('persona-slang');
+      const greetEl = document.getElementById('persona-greetings');
+      if (preset === 'casual') {
+        toneEl.value = 'Chill, relaxed, friendly, uses lowercase and occasional smiling emojis';
+        slangEl.value = 'bet, cool, on it, sounds good, haha, no worries';
+        greetEl.value = 'yo, hey bro, wassup, hey there';
+      } else if (preset === 'genz') {
+        toneEl.value = 'Gen-Z conversational, witty, dry humor, skips formal pleasantries, uses modern internet vernacular';
+        slangEl.value = 'fr, bet, lmao, nah, lowkey, valid, gotchu, on god';
+        greetEl.value = 'yo, yoo, heyy';
+      } else if (preset === 'professional') {
+        toneEl.value = 'Polite, clear, warm, articulate, highly organized';
+        slangEl.value = 'certainly, will do, appreciate it, will follow up';
+        greetEl.value = 'Hello, Hi there, Good day';
+      } else if (preset === 'minimal') {
+        toneEl.value = 'Extremely concise, 1-2 sentences maximum, gets straight to the point without filler words';
+        slangEl.value = 'yep, nope, on it, noted, will check';
+        greetEl.value = 'Hey, Hi';
+      }
+    }
+
+    function loadDemoChatSample() {
+      document.getElementById('persona-sample-chats').value = 
+`Me: yo wassup! are we still heading to the venue around 6?
+Friend: yeah bro, you got the slides ready?
+Me: yeah almost done just fixing the demo video haha, will be ready in 15 mins bet
+Friend: awesome, call me when you leave
+Me: for sure on it! see u soon 👍`;
+      updateChatCharCount();
+    }
+
+    function updateChatCharCount() {
+      const text = document.getElementById('persona-sample-chats').value || '';
+      document.getElementById('chat-chars-counter').innerText = `${text.length} chars`;
+    }
+
+    function collectPersonaFormData() {
+      return {
+        user_name: document.getElementById('persona-user-name').value.trim() || 'Subho',
+        occupation: document.getElementById('persona-occupation').value.trim(),
+        current_status: document.getElementById('persona-status').value.trim(),
+        communication_tone: document.getElementById('persona-tone').value.trim(),
+        common_greetings: document.getElementById('persona-greetings').value.trim(),
+        common_slang: document.getElementById('persona-slang').value.trim(),
+        custom_rules: document.getElementById('persona-rules').value.trim(),
+        sample_chats: document.getElementById('persona-sample-chats').value.trim(),
+        compiled_prompt: document.getElementById('persona-compiled-prompt').value.trim()
+      };
+    }
+
+    async function savePersonaProfile() {
+      const payload = collectPersonaFormData();
+      const btn = document.getElementById('btn-save-persona');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/persona', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          const headerNameEl = document.getElementById('header-user-name');
+          if (headerNameEl) headerNameEl.innerText = payload.user_name;
+          alert("✅ Persona profile and system prompt saved & activated!");
+        } else {
+          alert("Failed to save: " + (data.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert("Error saving persona: " + err);
+      } finally {
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Save & Activate Prompt`;
+        btn.disabled = false;
+      }
+    }
+
+    async function synthesizePersona() {
+      const payload = collectPersonaFormData();
+      const btnTop = document.getElementById('btn-synthesize-persona');
+      const btnBtm = document.getElementById('btn-synthesize-bottom');
+      const originalTopHtml = btnTop.innerHTML;
+      const originalBtmHtml = btnBtm ? btnBtm.innerHTML : '';
+
+      btnTop.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-300"></i> Synthesizing...`;
+      btnTop.disabled = true;
+      if (btnBtm) {
+        btnBtm.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-amber-300"></i> Synthesizing with AI...`;
+        btnBtm.disabled = true;
+      }
+
+      try {
+        const res = await fetch('/api/persona/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.compiled_prompt) {
+          document.getElementById('persona-compiled-prompt').value = data.compiled_prompt;
+          const headerNameEl = document.getElementById('header-user-name');
+          if (headerNameEl) headerNameEl.innerText = payload.user_name;
+          alert("🎉 Persona successfully synthesized! Your digital twin is now calibrated with your linguistic style.");
+        } else {
+          alert("Synthesis error: " + (data.detail || 'Could not compile prompt'));
+        }
+      } catch (err) {
+        alert("Persona synthesis failed: " + err);
+      } finally {
+        btnTop.innerHTML = originalTopHtml;
+        btnTop.disabled = false;
+        if (btnBtm) {
+          btnBtm.innerHTML = originalBtmHtml;
+          btnBtm.disabled = false;
+        }
+      }
+    }
+
+    function testPersonaInSandbox() {
+      switchView('dashboard');
+      const userName = document.getElementById('persona-user-name').value || 'Subho';
+      document.getElementById('sim-sender').value = 'Rohan (Friend)';
+      document.getElementById('sim-message').value = `Hey ${userName}, are you free to grab food tonight? Let me know!`;
+      
+      const form = document.getElementById('sim-form');
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const sendBtn = document.getElementById('btn-sim-send');
+      sendBtn.classList.add('ring-4', 'ring-indigo-500/50');
+      setTimeout(() => sendBtn.classList.remove('ring-4', 'ring-indigo-500/50'), 2000);
+    }
+
 
     async function fetchStatus() {
       try {

@@ -126,12 +126,74 @@ def extract_clean_message(t: str) -> str:
             last_item = re.sub(r"\[User's(?: Name)?\]", f"{user_name}'s", last_item, flags=re.IGNORECASE)
             last_item = re.sub(r"\[User(?: Name)?\]", user_name, last_item, flags=re.IGNORECASE)
             return last_item
-    return t
+async def synthesize_persona_prompt(profile: dict) -> str:
+    """Uses LLM to analyze the user questionnaire and sample chat logs to synthesize a high-fidelity digital twin persona prompt."""
+    user_name = profile.get("user_name", "Subho") or "Subho"
+    occupation = profile.get("occupation", "Developer")
+    status = profile.get("current_status", "Busy / away from phone")
+    tone = profile.get("communication_tone", "casual")
+    greetings = profile.get("common_greetings", "Hey, yo")
+    slang = profile.get("common_slang", "cool, on it, bet")
+    rules = profile.get("custom_rules", "")
+    sample_chats = profile.get("sample_chats", "").strip()
+
+    meta_prompt = f"""
+You are an expert AI persona engineer and conversational linguist.
+Your goal is to analyze the user's questionnaire profile and their real WhatsApp chat history to synthesize a specialized, authentic Persona System Prompt for an AI Digital Twin.
+
+### User Questionnaire Profile:
+- Owner Name: {user_name}
+- Profession / Bio: {occupation}
+- Current Status / Availability: {status}
+- Preferred Tone: {tone}
+- Typical Greetings: {greetings}
+- Common Slang / Catchphrases: {slang}
+- Custom Rules / Instructions: {rules}
+
+### Real Sample WhatsApp Chats Sent by {user_name}:
+\"\"\"
+{sample_chats if sample_chats else "(No chat logs provided. Synthesize persona from the questionnaire details above.)"}
+\"\"\"
+
+Analyze the user's linguistic style:
+- Vocabulary, slang, colloquialisms, tone
+- Sentence lengths (brief vs detailed)
+- Typical greeting habits and sign-offs
+- Emoji patterns (which emojis they use, how often)
+
+Generate a complete, ready-to-use System Instruction for the AI Digital Twin that will chat on WhatsApp on {user_name}'s behalf.
+Ensure the prompt includes:
+1. Role Definition: Explicitly state "You are the AI Persona Digital Twin of {user_name}." Strictly forbid placeholders like "[User]" or "[Name]".
+2. Linguistic Fingerprint & Vibe: Prescribe the exact tone, phrasing, emojis, and sentence cadence matching {user_name}.
+3. Current Context: Reflect that {user_name} is currently: {status}.
+4. Handling Inquiries: How to respond to casual check-ins, routine questions, and urgent emergencies (email notification dispatch).
+5. Safety Guardrails: Never make legal/financial commitments; keep WhatsApp responses concise (1-3 paragraphs).
+
+Output ONLY the complete persona system instruction in clean Markdown. Do NOT include meta-commentary, preamble, or analysis bullet points before the prompt.
+"""
+    system_inst = "You are a specialized AI system prompt generator. Return ONLY the final synthesized system prompt in markdown without conversational intros or conclusions."
+    result = await call_llm(system_instruction=system_inst, prompt=meta_prompt, user_query="persona prompt synthesis")
+    
+    cleaned = result.strip()
+    if cleaned.startswith("```markdown"):
+        cleaned = cleaned[11:]
+    elif cleaned.startswith("```"):
+        cleaned = cleaned[3:]
+    if cleaned.endswith("```"):
+        cleaned = cleaned[:-3]
+    return cleaned.strip()
 
 async def generate_persona_reply(sender_name: str, incoming_text: str, history: list) -> dict:
     """Generates a reply mimicking the user's personal twin persona."""
-    persona_system = load_prompt_file("persona_prompt.txt")
-    user_name = getattr(settings, "USER_NAME", "Subho")
+    # Check for dynamic persona profile in DB
+    from services import db
+    profile = await db.get_persona_profile()
+    user_name = profile.get("user_name") or getattr(settings, "USER_NAME", "Subho") or "Subho"
+
+    if profile.get("compiled_prompt"):
+        persona_system = profile["compiled_prompt"]
+    else:
+        persona_system = load_prompt_file("persona_prompt.txt")
     
     # Check for urgent signals
     urgent_keywords = ["urgent", "emergency", "asap", "accident", "call me now", "critical", "help me"]
