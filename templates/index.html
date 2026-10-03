@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twin & Event Agent Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+  
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i class="fa-solid fa-robot text-lg text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+            PersonaTwin & EventDesk
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Live</span>
+          </h1>
+          <p class="text-xs text-slate-400">Autonomous WhatsApp Persona & Organizing Committee DM Dispatcher</p>
+        </div>
+      </div>
+
+      <!-- Mode Selector & Quick Controls -->
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-sm">
+          <button id="btn-mode-persona" onclick="switchMode('persona')" class="px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-2 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-user-astronaut"></i> Persona Twin
+          </button>
+          <button id="btn-mode-event" onclick="switchMode('event')" class="px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-2 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-users-gear"></i> Event Committee
+          </button>
+          <button id="btn-mode-auto" onclick="switchMode('auto')" class="px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-2 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Auto
+          </button>
+        </div>
+
+        <button onclick="sendTestEmail()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition">
+          <i class="fa-solid fa-envelope"></i> Test Alert
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto p-6 space-y-6">
+    
+    <!-- Top Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Active Mode</span>
+          <i class="fa-solid fa-sliders text-indigo-400"></i>
+        </div>
+        <div id="stat-active-mode" class="mt-2 text-2xl font-bold capitalize text-white">Loading...</div>
+        <p class="text-xs text-slate-500 mt-1" id="stat-mode-desc">Mode description</p>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Total Messages</span>
+          <i class="fa-solid fa-message text-emerald-400"></i>
+        </div>
+        <div id="stat-total-msgs" class="mt-2 text-2xl font-bold text-white">0</div>
+        <p class="text-xs text-emerald-400/80 mt-1 flex items-center gap-1">
+          <i class="fa-solid fa-circle-check text-[10px]"></i> Processed via Webhook
+        </p>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Unique Contacts</span>
+          <i class="fa-solid fa-address-book text-blue-400"></i>
+        </div>
+        <div id="stat-unique-senders" class="mt-2 text-2xl font-bold text-white">0</div>
+        <p class="text-xs text-slate-500 mt-1">Participants & Friends</p>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase">
+          <span>Urgent Escalations</span>
+          <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+        </div>
+        <div id="stat-escalations" class="mt-2 text-2xl font-bold text-rose-400">0</div>
+        <p class="text-xs text-rose-400/80 mt-1 flex items-center gap-1">
+          <i class="fa-solid fa-bolt text-[10px]"></i> Instant Email Alerts Dispatched
+        </p>
+      </div>
+    </div>
+
+    <!-- Dual Column Workspace -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Column: Live Message Feed (7 cols) -->
+      <div class="lg:col-span-7 bg-slate-800/40 border border-slate-800 rounded-2xl flex flex-col h-[680px] overflow-hidden">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+          <div class="flex items-center space-x-2">
+            <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+            <h2 class="font-semibold text-sm">Live WhatsApp DM Activity</h2>
+          </div>
+          <button onclick="loadMessages()" class="text-xs text-slate-400 hover:text-white transition flex items-center gap-1">
+            <i class="fa-solid fa-arrows-rotate"></i> Refresh
+          </button>
+        </div>
+
+        <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Dynamically populated messages -->
+          <div class="text-center text-slate-500 text-sm py-12">
+            <i class="fa-regular fa-comments text-3xl mb-3 block opacity-40"></i>
+            No incoming messages yet. Send a test message or WhatsApp DM!
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Sandbox & Controls (5 cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Live Agent Simulator -->
+        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-sm flex items-center gap-2">
+              <i class="fa-solid fa-vial text-indigo-400"></i> Instant DM Simulator
+            </h3>
+            <span class="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">Test Without WhatsApp</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-4">
+            Simulate an attendee or contact pinging you. The agent will process, categorize, and trigger smart email notifications.
+          </p>
+
+          <form id="sim-form" onsubmit="runSimulation(event)" class="space-y-3">
+            <div>
+              <label class="text-xs text-slate-400 font-medium">Sender Name / Identifier</label>
+              <input type="text" id="sim-sender" value="Alex Rivera (Hacker #42)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1">
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-400 font-medium">Message Body</label>
+              <textarea id="sim-message" rows="3" placeholder="e.g. When is the submission deadline? or Hey are you free to talk?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 mt-1"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <button type="button" onclick="loadSampleQuery('wifi')" class="text-[11px] text-slate-400 hover:text-indigo-400 underline">Wi-Fi Query</button>
+              <button type="button" onclick="loadSampleQuery('urgent')" class="text-[11px] text-slate-400 hover:text-rose-400 underline">Medical Emergency</button>
+              <button type="button" onclick="loadSampleQuery('persona')" class="text-[11px] text-slate-400 hover:text-blue-400 underline">Personal Catch-up</button>
+            </div>
+
+            <button type="submit" id="btn-sim-send" class="w-full bg-gradient-to-r from-indigo-500 to-emerald-500 hover:from-indigo-600 hover:to-emerald-600 text-white font-medium py-2 rounded-lg text-sm transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> Send Query & Test Agent
+            </button>
+          </form>
+        </div>
+
+        <!-- WhatsApp Webhook & Green API Setup Info -->
+        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-sm flex items-center gap-2">
+              <i class="fa-solid fa-link text-emerald-400"></i> WhatsApp Connection (Green API)
+            </h3>
+            <span id="provider-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              Green API
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">
+            Set this Webhook URL in your <a href="https://console.green-api.com" target="_blank" class="text-emerald-400 hover:underline">Green API Cabinet</a> (or Twilio Console):
+          </p>
+          <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between text-xs font-mono text-emerald-400">
+            <span id="webhook-url" class="truncate pr-2">https://&lt;your-domain&gt;/whatsapp/green-api-webhook</span>
+            <button onclick="copyWebhookUrl()" class="text-slate-400 hover:text-white px-2 py-1 flex-shrink-0" title="Copy URL">
+              <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+          <div class="mt-3 text-xs text-slate-400 space-y-1.5">
+            <p class="flex items-start gap-1.5">
+              <i class="fa-solid fa-check text-emerald-400 text-[10px] mt-0.5"></i>
+              <span><strong>Green API:</strong> Create instance at <a href="https://green-api.com/en/docs/" target="_blank" class="text-emerald-400 underline">green-api.com</a>, scan WhatsApp QR code, and paste your <code class="text-slate-300">GREEN_API_INSTANCE_ID</code> & <code class="text-slate-300">GREEN_API_API_TOKEN_INSTANCE</code> in <code class="text-slate-300">.env</code>.</span>
+            </p>
+            <p class="flex items-start gap-1.5">
+              <i class="fa-solid fa-check text-emerald-400 text-[10px] mt-0.5"></i>
+              <span><strong>Webhook:</strong> Turn on <em>"Receive notifications about incoming messages"</em> in Green API console.</span>
+            </p>
+            <p class="flex items-start gap-1.5 text-slate-500 text-[11px] pt-1 border-t border-slate-800/80">
+              <i class="fa-solid fa-info-circle text-[10px] mt-0.5"></i>
+              <span>Twilio sandbox is also supported on endpoint <code class="text-slate-400">/whatsapp/webhook</code>.</span>
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let currentMode = 'persona';
+
+    async function initDashboard() {
+      await fetchStatus();
+      await loadMessages();
+      setInterval(loadMessages, 5000);
+      document.getElementById('webhook-url').innerText = window.location.origin + '/whatsapp/green-api-webhook';
+    }
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        currentMode = data.agent_mode;
+        updateModeUI(data.agent_mode);
+
+        document.getElementById('stat-active-mode').innerText = data.agent_mode;
+        document.getElementById('stat-total-msgs').innerText = data.stats.total_messages;
+        document.getElementById('stat-unique-senders').innerText = data.stats.unique_contacts;
+        document.getElementById('stat-escalations').innerText = data.stats.escalations;
+
+        const badgeEl = document.getElementById('provider-badge');
+        if (badgeEl && data.whatsapp_provider) {
+          if (data.whatsapp_provider === 'green_api') {
+            const isConfigured = data.green_api_configured;
+            badgeEl.innerText = isConfigured ? "Green API (Connected)" : "Green API (Set .env)";
+            badgeEl.className = isConfigured
+              ? "text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+              : "text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30";
+          } else {
+            badgeEl.innerText = data.whatsapp_provider.toUpperCase();
+          }
+        }
+
+        const descEl = document.getElementById('stat-mode-desc');
+        if (data.agent_mode === 'persona') {
+          descEl.innerText = "Mimicking user voice during away hours";
+        } else if (data.agent_mode === 'event') {
+          descEl.innerText = "Handling high-volume committee DMs with FAQ RAG";
+        } else {
+          descEl.innerText = "Auto-routing persona vs event queries";
+        }
+      } catch (err) {
+        console.error("Status fetch failed:", err);
+      }
+    }
+
+    function updateModeUI(mode) {
+      ['persona', 'event', 'auto'].forEach(m => {
+        const btn = document.getElementById(`btn-mode-${m}`);
+        if (m === mode) {
+          btn.className = "px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-2 bg-indigo-600 text-white shadow-sm";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg transition font-medium flex items-center gap-2 text-slate-400 hover:text-white";
+        }
+      });
+    }
+
+    async function switchMode(newMode) {
+      try {
+        const res = await fetch('/api/mode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: newMode })
+        });
+        const data = await res.json();
+        if (data.success) {
+          fetchStatus();
+        }
+      } catch (e) {
+        alert("Failed to change mode: " + e);
+      }
+    }
+
+    async function loadMessages() {
+      try {
+        const res = await fetch('/api/messages');
+        const msgs = await res.json();
+        const container = document.getElementById('messages-container');
+
+        if (!msgs || msgs.length === 0) {
+          container.innerHTML = `
+            <div class="text-center text-slate-500 text-sm py-16">
+              <i class="fa-regular fa-comments text-3xl mb-3 block opacity-40"></i>
+              No incoming messages yet. Send a test message on the right!
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = msgs.map(m => {
+          const isEsc = m.is_escalated;
+          const badgeColor = isEsc ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+                             m.mode === 'persona' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                             'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+          const cleanPhone = m.sender.replace(/[^0-9]/g, '');
+
+          return `
+            <div class="p-4 rounded-xl bg-slate-900/80 border ${isEsc ? 'border-rose-500/40 bg-rose-950/10' : 'border-slate-800'} space-y-2 transition hover:border-slate-700">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <span class="font-semibold text-sm text-white">${escapeHtml(m.sender_name || m.sender)}</span>
+                  <span class="text-xs text-slate-500">(${escapeHtml(m.sender)})</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span class="text-[11px] px-2 py-0.5 rounded-full border ${badgeColor} font-medium">
+                    ${isEsc ? '<i class="fa-solid fa-triangle-exclamation mr-1"></i>' : ''}${escapeHtml(m.category)}
+                  </span>
+                  <span class="text-[11px] text-slate-500">${formatTime(m.created_at)}</span>
+                </div>
+              </div>
+
+              <div class="text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+                <span class="text-slate-500 font-medium mr-1">Inquiry:</span> "${escapeHtml(m.incoming_text)}"
+              </div>
+
+              <div class="text-xs text-indigo-300 bg-indigo-950/30 p-2.5 rounded-lg border border-indigo-900/30">
+                <span class="text-indigo-400 font-medium mr-1">Agent Reply:</span> ${escapeHtml(m.agent_reply)}
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <a href="https://wa.me/${cleanPhone}" target="_blank" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium">
+                  <i class="fa-brands fa-whatsapp"></i> Chat directly on WhatsApp
+                </a>
+                <button onclick="toggleMute('${escapeHtml(m.sender)}')" class="text-xs text-slate-400 hover:text-white transition">
+                  <i class="fa-solid fa-user-shield"></i> Takeover Conversation
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Error loading messages:", err);
+      }
+    }
+
+    async function runSimulation(e) {
+      e.preventDefault();
+      const sender = document.getElementById('sim-sender').value;
+      const text = document.getElementById('sim-message').value;
+      if (!text.trim()) return;
+
+      const btn = document.getElementById('btn-sim-send');
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sender_name: sender, message: text })
+        });
+        const data = await res.json();
+        document.getElementById('sim-message').value = '';
+        await fetchStatus();
+        await loadMessages();
+      } catch (err) {
+        alert("Simulation error: " + err);
+      } finally {
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Send Query & Test Agent`;
+        btn.disabled = false;
+      }
+    }
+
+    function loadSampleQuery(type) {
+      const msgInput = document.getElementById('sim-message');
+      if (type === 'wifi') {
+        msgInput.value = "Hey! What is the official Wi-Fi name and password for Hall B?";
+      } else if (type === 'urgent') {
+        msgInput.value = "URGENT: Our teammate fainted near Hall B entrance, need medical assistance immediately!";
+      } else if (type === 'persona') {
+        msgInput.value = "Hey bro, are you free for a quick sync today about the weekend plan?";
+      }
+    }
+
+    async function sendTestEmail() {
+      try {
+        const res = await fetch('/api/test-email', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message);
+      } catch (e) {
+        alert("Failed to send test email: " + e);
+      }
+    }
+
+    async function toggleMute(sender) {
+      if (confirm(`Do you want to toggle Human Takeover for ${sender}? (This will mute/unmute AI responses)`)) {
+        await fetch('/api/takeover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sender: sender, mute: true })
+        });
+        alert(`Human takeover enabled for ${sender}. The AI will stay silent.`);
+      }
+    }
+
+    function copyWebhookUrl() {
+      const url = document.getElementById('webhook-url').innerText;
+      navigator.clipboard.writeText(url);
+      alert("Webhook URL copied to clipboard!");
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    window.onload = initDashboard;
+  </script>
+</body>
+</html>

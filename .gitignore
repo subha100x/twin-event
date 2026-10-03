@@ -1,0 +1,34 @@
+# Environment Secrets
+.env
+.env.local
+.env.*.local
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+twin_agent.db
+
+# Executables & Binaries
+ngrok.exe
+*.exe
+
+# IDE & Editor files
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store

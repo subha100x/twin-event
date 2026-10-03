@@ -1,0 +1,1 @@
+A agent that would directly mimic your persona to other persons, which you can use to chat with other persons when they are unavailable. You would be notified on each msg whenever you're pinged, directly on your mail. It can be modified to handle the n number of dms that the organising committee gets, during any event.
